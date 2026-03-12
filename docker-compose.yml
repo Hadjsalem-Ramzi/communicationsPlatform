@@ -1,0 +1,44 @@
+services:
+  backend:
+    image: communicationbackend
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    depends_on:
+      - db
+    networks:
+      - app-network
+    env_file:
+      - .env
+
+  frontend:
+    image: ramzi/frontend
+    ports:
+      - "82:80"
+    networks:
+      - app-network
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: db-communication
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: "Europe/Paris"
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+    env_file:
+      - .env
+
+volumes:
+  db_data:
+
+networks:
+  app-network:

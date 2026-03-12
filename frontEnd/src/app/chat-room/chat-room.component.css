@@ -1,0 +1,9 @@
+/* Style personnalisé pour la cellule contenant les boutons */
+.actions-cell {
+  gap: 90px; /* Espace entre les boutons */
+}
+
+.actions-cell button {
+  flex-grow: 1; /* Les boutons occupent une largeur égale */
+  max-width: 100px; /* Limite la largeur des boutons */
+}

@@ -1,0 +1,36 @@
+spring:
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/plateformcommunication
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+server:
+  port: 8083
+
+application:
+  security:
+    jwt:
+      secret-key: IS/A4dZ9K2z5tQSV3eGK2i4RGNdiD7qbGGTNq9xUZqO4pqa8+BIan+scnhFPz15pSFWkTGve4YNxWHXt90U5Tg==
+      expiration: 8643600000
+      refresh-token:
+        expiration: 864036000
+
+mail:
+  host: smtp.gmail.com
+  port: 587
+  username: hadjsalemramzi24@gmail.com
+  password: aepmoueucazucmnn
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls.enable: true
