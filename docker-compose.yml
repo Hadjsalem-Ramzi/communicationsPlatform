@@ -4,7 +4,7 @@ services:
   backend:
     image: ${DOCKER_HUB_USER}/spring-app:${TAG:-latest}
     build:
-      context: ./backend
+      context: ./Backend
       dockerfile: Dockerfile
     container_name: demo-backend
     ports:
@@ -18,7 +18,7 @@ services:
   frontend:
     image: ${DOCKER_HUB_USER}/angular-app:${TAG:-latest}
     build:
-      context: ./frontend
+      context: ./frontEnd
       dockerfile: Dockerfile
     container_name: demo-frontend
     ports:
