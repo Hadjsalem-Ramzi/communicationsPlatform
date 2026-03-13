@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+            nodejs 'NodeJS18'   // ← AJOUTER CETTE LIGNE (nom exact de votre installation)
+        }
+
     environment {
         // À MODIFIER - Votre nom d'utilisateur Docker Hub
         DOCKER_HUB_USER = 'hadjsalemramzi'
