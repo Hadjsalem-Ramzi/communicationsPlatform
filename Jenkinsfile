@@ -11,11 +11,11 @@ pipeline {
 
         // Noms des images avec tag (numéro de build)
         Backend_IMAGE = "${DOCKER_HUB_USER}/spring-app:${BUILD_NUMBER}"
-        FRONTEND_IMAGE = "${DOCKER_HUB_USER}/angular-app:${BUILD_NUMBER}"
+        frontEnd_IMAGE = "${DOCKER_HUB_USER}/angular-app:${BUILD_NUMBER}"
 
         // Tags "latest"
         Backend_LATEST = "${DOCKER_HUB_USER}/spring-app:latest"
-        FRONTEND_LATEST = "${DOCKER_HUB_USER}/angular-app:latest"
+        frontEnd_LATEST = "${DOCKER_HUB_USER}/angular-app:latest"
     }
 
     stages {
@@ -73,10 +73,10 @@ pipeline {
             }
         }
 
-        stage('Build Frontend') {
+        stage('Build frontEnd') {
             steps {
-                dir('frontend') {
-                    echo '🔨 Installation des dépendances frontend...'
+                dir('frontEnd') {
+                    echo '🔨 Installation des dépendances frontEnd...'
                     sh 'npm install'
                     echo '🔨 Build Angular pour production...'
                     sh 'npm run build --prod'
@@ -84,10 +84,10 @@ pipeline {
             }
         }
 
-        stage('Test Frontend') {
+        stage('Test frontEnd') {
             steps {
-                dir('frontend') {
-                    echo '🧪 Tests frontend (headless)...'
+                dir('frontEnd') {
+                    echo '🧪 Tests frontEnd (headless)...'
                     sh 'npm test -- --watch=false --browsers=ChromeHeadless || true'
                 }
             }
@@ -132,9 +132,9 @@ pipeline {
                             docker push ${Backend_IMAGE}
                             docker push ${Backend_LATEST}
 
-                            docker tag ${FRONTEND_IMAGE} ${FRONTEND_LATEST}
-                            docker push ${FRONTEND_IMAGE}
-                            docker push ${FRONTEND_LATEST}
+                            docker tag ${frontEnd_IMAGE} ${frontEnd_LATEST}
+                            docker push ${frontEnd_IMAGE}
+                            docker push ${frontEnd_LATEST}
                         """
                     }
                 }
@@ -151,7 +151,7 @@ pipeline {
                     TAG=${BUILD_NUMBER} docker-compose up -d
                     echo "✅ Application déployée !"
                     echo "Backend: http://localhost:8080/api/hello"
-                    echo "Frontend: http://localhost"
+                    echo "frontEnd: http://localhost"
                 """
             }
         }
