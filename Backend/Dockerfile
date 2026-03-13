@@ -13,7 +13,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Étape 2 : Image d'exécution légère
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
 # Copie du JAR construit
