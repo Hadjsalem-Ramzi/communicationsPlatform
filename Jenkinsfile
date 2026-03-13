@@ -25,7 +25,7 @@ pipeline {
 
         stage('Build Backend avec Maven') {
             steps {
-                dir('backend') {
+                dir('Backend') {
                     echo '🔨 Compilation du backend Spring avec Maven...'
                     // Utilisation de Maven configuré dans Jenkins
                     withMaven(
