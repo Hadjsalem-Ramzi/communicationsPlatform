@@ -91,9 +91,13 @@ pipeline {
 
         // 👆 ÉTAPE 4 : APPROBATION MANUELLE
         stage('approval') {
-            when {
-                branch 'main'  // Ne demander l'approbation que sur main
-            }
+           when {
+                   anyOf {
+                       branch 'main'
+                       branch '*/main'
+                       branch 'origin/main'
+                   }
+               }
             steps {
                 echo '⏳ En attente d\'approbation pour le déploiement...'
                 input message: 'Approuver le déploiement en production ?',
@@ -103,9 +107,13 @@ pipeline {
 
         // 🚀 ÉTAPE 5 : DÉPLOIEMENT EN PRODUCTION
         stage('deploy: prod') {
-            when {
-                branch 'main'  // Ne déployer que sur main
-            }
+           when {
+                   anyOf {
+                       branch 'main'
+                       branch '*/main'
+                       branch 'origin/main'
+                   }
+               }
             steps {
                 echo '🚀 Packaging et déploiement en production...'
 
