@@ -2,66 +2,115 @@ pipeline {
     agent any
 
     tools {
-            nodejs 'NodeJS18'   // ← AJOUTER CETTE LIGNE (nom exact de votre installation)
-        }
+        nodejs 'NodeJS18'
+    }
 
     environment {
-        // À MODIFIER - Votre nom d'utilisateur Docker Hub
         DOCKER_HUB_USER = 'hadjsalemramzi'
-
-        // Noms des images avec tag (numéro de build)
         Backend_IMAGE = "${DOCKER_HUB_USER}/spring-app:${BUILD_NUMBER}"
         frontEnd_IMAGE = "${DOCKER_HUB_USER}/angular-app:${BUILD_NUMBER}"
-
-        // Tags "latest"
         Backend_LATEST = "${DOCKER_HUB_USER}/spring-app:latest"
         frontEnd_LATEST = "${DOCKER_HUB_USER}/angular-app:latest"
     }
 
     stages {
-        stage('Checkout') {
+        // 📦 ÉTAPE 1 : INTÉGRATION & QUALITÉ
+        stage('integration & quality') {
             steps {
-                // Récupération du code depuis GitHub
+                echo '🔍 Récupération du code et compilation...'
+                // Checkout du code
                 checkout scm
-                echo '✅ Code récupéré avec succès'
-            }
-        }
 
-        stage('Build Backend avec Maven') {
-            steps {
+                // Compilation Backend
                 dir('Backend') {
-                    echo '🔨 Compilation du Backend Spring avec Maven...'
-                    // Utilisation de Maven configuré dans Jenkins
-                    withMaven(
-                        maven: 'Maven3',          // Nom dans Global Tool Configuration
-                        jdk: 'JDK17',              // Nom dans Global Tool Configuration
-                        mavenLocalRepo: '.repository'
-                    ) {
-                        sh 'mvn clean compile'
-                    }
-                }
-            }
-        }
-
-        stage('Test Backend') {
-            steps {
-                dir('Backend') {
-                    echo '🧪 Exécution des tests unitaires...'
                     withMaven(
                         maven: 'Maven3',
                         jdk: 'JDK17',
                         mavenLocalRepo: '.repository'
                     ) {
-                       // sh 'mvn test'
+                        sh 'mvn clean compile'
                     }
+                }
+
+                // Installation dépendances Frontend
+                dir('frontEnd') {
+                    sh 'npm install'
                 }
             }
         }
 
-        stage('Package Backend') {
+        // 🧪 ÉTAPE 2 : TESTS FONCTIONNELS
+        stage('test: functional') {
             steps {
+                echo '🧪 Exécution des tests...'
+
+                // Tests Backend
                 dir('Backend') {
-                    echo '📦 Packaging du Backend en JAR...'
+                    withMaven(
+                        maven: 'Maven3',
+                        jdk: 'JDK17',
+                        mavenLocalRepo: '.repository'
+                    ) {
+                        sh 'mvn test'
+                    }
+                }
+
+                // Tests Frontend (si vous avez des tests)
+                dir('frontEnd') {
+                    // sh 'npm test -- --watch=false --browsers=ChromeHeadless || true'
+                    echo 'Tests frontend désactivés pour le moment'
+                }
+            }
+            post {
+                always {
+                    // Publier les rapports de tests
+                    junit allowEmptyResults: true, testResults: 'Backend/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        // 🔒 ÉTAPE 3 : SÉCURITÉ
+        stage('security') {
+            steps {
+                echo '🔒 Analyse de sécurité des dépendances...'
+
+                // Audit npm pour le frontend
+                dir('frontEnd') {
+                    sh 'npm audit --production || true'
+                }
+
+                // Vous pouvez ajouter ici d'autres outils de sécurité
+                // Exemple avec OWASP Dependency Check pour Maven
+                // dir('Backend') {
+                //     withMaven(maven: 'Maven3') {
+                //         sh 'mvn org.owasp:dependency-check-maven:check'
+                //     }
+                // }
+            }
+        }
+
+        // 👆 ÉTAPE 4 : APPROBATION MANUELLE
+        stage('approval') {
+            when {
+                branch 'main'  // Ne demander l'approbation que sur main
+            }
+            steps {
+                echo '⏳ En attente d\'approbation pour le déploiement...'
+                input message: 'Approuver le déploiement en production ?',
+                      ok: '✅ Oui, déployer'
+            }
+        }
+
+        // 🚀 ÉTAPE 5 : DÉPLOIEMENT EN PRODUCTION
+        stage('deploy: prod') {
+            when {
+                branch 'main'  // Ne déployer que sur main
+            }
+            steps {
+                echo '🚀 Packaging et déploiement en production...'
+
+                // Package Backend
+                dir('Backend') {
                     withMaven(
                         maven: 'Maven3',
                         jdk: 'JDK17',
@@ -70,47 +119,20 @@ pipeline {
                         sh 'mvn package -DskipTests'
                     }
                 }
-            }
-        }
 
-        stage('Build frontEnd') {
-            steps {
+                // Build Angular pour production
                 dir('frontEnd') {
-                    echo '🔨 Installation des dépendances frontEnd...'
-                    sh 'npm install'
-                    echo '🔨 Build Angular pour production...'
                     sh 'npm run build --prod'
                 }
-            }
-        }
 
-        stage('Test frontEnd') {
-            steps {
-                dir('frontEnd') {
-                    echo '🧪 Tests frontEnd (headless)...'
-                   // sh 'npm test -- --watch=false --browsers=ChromeHeadless || true'
-                }
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                echo '🐳 Construction des images Docker avec Docker Compose...'
-                sh """
-                    TAG=${BUILD_NUMBER} docker compose build
-                """
-            }
-        }
-
-
-
-        stage('Push to Docker Hub') {
-            when {
-                branch 'main'  // Ne push que sur la branche principale
-            }
-            steps {
-                echo '⬆️ Envoi des images vers Docker Hub...'
+                // Construction des images Docker
                 script {
+                    // Build images
+                    sh """
+                        TAG=${BUILD_NUMBER} docker compose build
+                    """
+
+                    // Push vers Docker Hub (seulement sur main)
                     docker.withRegistry('', 'docker-hub-credentials') {
                         sh """
                             docker tag ${Backend_IMAGE} ${Backend_LATEST}
@@ -125,8 +147,6 @@ pipeline {
                 }
             }
         }
-
-
     }
 
     post {
