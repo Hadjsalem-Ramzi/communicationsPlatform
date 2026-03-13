@@ -1,19 +1,26 @@
-# Utiliser une image de base OpenJDK
-FROM openjdk:17-jdk-alpine
+# Étape 1 : Build avec Maven
+FROM maven:3.8.4-openjdk-17 AS build
+WORKDIR /app
 
-# Créer un répertoire pour les fichiers temporaires de Spring Boot
-VOLUME /tmp
+# Copie des fichiers Maven et résolution des dépendances
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
-# Copier le fichier JAR dans l'image Docker
-COPY target/PlateformCommunication-0.0.1-SNAPSHOT.jar BackCommunication.jar
+# Copie du code source
+COPY src ./src
 
-# Définir le fuseau horaire pour le backend
-ENV TZ=Europe/Paris
-RUN apk add --no-cache tzdata && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# Compilation et packaging
+RUN mvn clean package -DskipTests
 
-# Exposer le port 8083
-EXPOSE 8083
+# Étape 2 : Image d'exécution légère
+FROM openjdk:17-jdk-slim
+WORKDIR /app
 
-# Lancer l'application avec Java
-ENTRYPOINT ["java", "-jar", "/BackCommunication.jar"]
+# Copie du JAR construit
+COPY --from=build /app/target/*.jar app.jar
+
+# Exposition du port
+EXPOSE 8080
+
+# Commande de démarrage
+ENTRYPOINT ["java", "-jar", "app.jar"]
