@@ -97,7 +97,7 @@ pipeline {
             steps {
                 echo '🐳 Construction des images Docker avec Docker Compose...'
                 sh """
-                    TAG=${BUILD_NUMBER} docker-compose build
+                    TAG=${BUILD_NUMBER} docker compose build
                 """
             }
         }
