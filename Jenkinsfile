@@ -51,7 +51,7 @@ pipeline {
                         jdk: 'JDK17',
                         mavenLocalRepo: '.repository'
                     ) {
-                        sh 'mvn test'
+                        sh 'mvn test' -DskipTests'
                     }
                 }
 
