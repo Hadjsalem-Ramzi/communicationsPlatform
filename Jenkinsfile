@@ -6,11 +6,11 @@ pipeline {
         DOCKER_HUB_USER = 'hadjsalemramzi'
 
         // Noms des images avec tag (numéro de build)
-        BACKEND_IMAGE = "${DOCKER_HUB_USER}/spring-app:${BUILD_NUMBER}"
+        Backend_IMAGE = "${DOCKER_HUB_USER}/spring-app:${BUILD_NUMBER}"
         FRONTEND_IMAGE = "${DOCKER_HUB_USER}/angular-app:${BUILD_NUMBER}"
 
         // Tags "latest"
-        BACKEND_LATEST = "${DOCKER_HUB_USER}/spring-app:latest"
+        Backend_LATEST = "${DOCKER_HUB_USER}/spring-app:latest"
         FRONTEND_LATEST = "${DOCKER_HUB_USER}/angular-app:latest"
     }
 
@@ -26,7 +26,7 @@ pipeline {
         stage('Build Backend avec Maven') {
             steps {
                 dir('Backend') {
-                    echo '🔨 Compilation du backend Spring avec Maven...'
+                    echo '🔨 Compilation du Backend Spring avec Maven...'
                     // Utilisation de Maven configuré dans Jenkins
                     withMaven(
                         maven: 'Maven3',          // Nom dans Global Tool Configuration
@@ -41,7 +41,7 @@ pipeline {
 
         stage('Test Backend') {
             steps {
-                dir('backend') {
+                dir('Backend') {
                     echo '🧪 Exécution des tests unitaires...'
                     withMaven(
                         maven: 'Maven3',
@@ -56,8 +56,8 @@ pipeline {
 
         stage('Package Backend') {
             steps {
-                dir('backend') {
-                    echo '📦 Packaging du backend en JAR...'
+                dir('Backend') {
+                    echo '📦 Packaging du Backend en JAR...'
                     withMaven(
                         maven: 'Maven3',
                         jdk: 'JDK17',
@@ -124,9 +124,9 @@ pipeline {
                 script {
                     docker.withRegistry('', 'docker-hub-credentials') {
                         sh """
-                            docker tag ${BACKEND_IMAGE} ${BACKEND_LATEST}
-                            docker push ${BACKEND_IMAGE}
-                            docker push ${BACKEND_LATEST}
+                            docker tag ${Backend_IMAGE} ${Backend_LATEST}
+                            docker push ${Backend_IMAGE}
+                            docker push ${Backend_LATEST}
 
                             docker tag ${FRONTEND_IMAGE} ${FRONTEND_LATEST}
                             docker push ${FRONTEND_IMAGE}
