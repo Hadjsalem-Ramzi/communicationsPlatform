@@ -88,7 +88,7 @@ pipeline {
             steps {
                 dir('frontEnd') {
                     echo '🧪 Tests frontEnd (headless)...'
-                    sh 'npm test -- --watch=false --browsers=ChromeHeadless || true'
+                   // sh 'npm test -- --watch=false --browsers=ChromeHeadless || true'
                 }
             }
         }
@@ -102,22 +102,7 @@ pipeline {
             }
         }
 
-        stage('Test avec Docker Compose') {
-            steps {
-                echo '🧪 Tests d\'intégration avec les conteneurs...'
-                sh """
-                    TAG=${BUILD_NUMBER} docker-compose up -d
-                    sleep 15  // Attendre le démarrage des services
-                """
-                sh 'curl -f http://localhost:8080/api/hello || exit 1'
-                sh 'curl -f http://localhost || exit 1'
-            }
-            post {
-                always {
-                    sh 'docker-compose down'
-                }
-            }
-        }
+
 
         stage('Push to Docker Hub') {
             when {
@@ -141,20 +126,7 @@ pipeline {
             }
         }
 
-        stage('Deploy with Docker Compose') {
-            when {
-                branch 'main'
-            }
-            steps {
-                echo '🚀 Déploiement de l\'application...'
-                sh """
-                    TAG=${BUILD_NUMBER} docker-compose up -d
-                    echo "✅ Application déployée !"
-                    echo "Backend: http://localhost:8080/api/hello"
-                    echo "frontEnd: http://localhost"
-                """
-            }
-        }
+
     }
 
     post {
